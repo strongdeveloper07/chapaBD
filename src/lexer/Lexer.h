@@ -23,13 +23,13 @@ private:
     bool        isAtEnd() const;
 
     void        skipWhitespace();
-    void        skipLineComment();   // -- комментарий
+    void        skipLineComment(); 
 
     Token       readNumber();
-    Token       readString();        // 'строка'
+    Token       readString();      
     Token       readIdentifierOrKeyword();
 
     Token       makeToken(TokenType t, std::string val) const;
 };
 
-} // namespace chapadb
+} 

@@ -6,7 +6,7 @@
 
 namespace chapadb {
 
-// Упрощённые типы для клиентской библиотеки (без зависимости от серверных заголовков)
+// Упрощённые типы для клиентской библиотеки 
 
 struct ClientRow {
     std::vector<std::string> values; // все значения как строки
@@ -43,4 +43,4 @@ private:
     std::unique_ptr<Impl> m_impl;
 };
 
-} // namespace chapadb
+} 

@@ -14,7 +14,7 @@ struct ColumnSchema {
     uint32_t    param; // для VARCHAR — максимальная длина
 };
 
-// NULL = std::monostate, INT = int32_t, FLOAT = double, BOOL = bool, TEXT/VARCHAR = std::string
+
 using Value = std::variant<std::monostate, int32_t, double, bool, std::string>;
 
 struct Row {
@@ -30,4 +30,4 @@ struct QueryResult {
     std::string              message;
 };
 
-} // namespace chapadb
+} 

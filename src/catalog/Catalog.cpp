@@ -31,4 +31,4 @@ bool Catalog::hasCurrentDatabase() const {
     return !m_currentDb.empty();
 }
 
-} // namespace chapadb
+}

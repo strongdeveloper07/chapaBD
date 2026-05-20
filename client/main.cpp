@@ -9,7 +9,6 @@
 
 // ─────────────────────────── ASCII-таблица ───────────────────────────
 
-/// Рисует горизонтальную разделительную линию таблицы
 static void printTableLine(const std::vector<size_t>& widths) {
     std::cout << '+';
     for (size_t w : widths) {
@@ -126,9 +125,8 @@ int main(int argc, char* argv[]) {
         std::cout.flush();
 
         std::string line;
-        if (!std::getline(std::cin, line)) break; // EOF
+        if (!std::getline(std::cin, line)) break;
 
-        // Обрезаем пробелы с обоих концов
         size_t start = line.find_first_not_of(" \t\r");
         size_t end   = line.find_last_not_of(" \t\r");
         if (start == std::string::npos) {
@@ -138,7 +136,6 @@ int main(int argc, char* argv[]) {
             line = line.substr(start, end - start + 1);
         }
 
-        // Специальные команды
         if (!multiline && (line == "\\q" || line == "exit" || line == "quit")) {
             std::cout << "До свидания!\n";
             break;
@@ -152,7 +149,6 @@ int main(int argc, char* argv[]) {
         if (!buffer.empty()) buffer += ' ';
         buffer += line;
 
-        // Проверяем, завершён ли запрос (заканчивается на ';')
         size_t semPos = buffer.rfind(';');
         if (semPos == std::string::npos) {
             multiline = true;

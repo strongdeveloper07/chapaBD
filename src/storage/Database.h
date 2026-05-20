@@ -6,10 +6,9 @@
 
 namespace chapadb {
 
-/// Представляет одну базу данных: имя + коллекция таблиц
 struct DatabaseMeta {
     std::string                          name;
     std::unordered_map<std::string, TableMeta> tables;
 };
 
-} // namespace chapadb
+} 

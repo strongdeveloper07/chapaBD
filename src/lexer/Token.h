@@ -55,8 +55,8 @@ enum class TokenType {
 struct Token {
     TokenType   type;
     std::string value;   // текстовое представление токена
-    int         line;    // номер строки (для диагностики)
+    int         line;
     int         column;
 };
 
-} // namespace chapadb
+} 

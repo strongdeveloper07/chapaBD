@@ -17,4 +17,4 @@ std::string jsonEscape(const std::string& s);
 /// Конвертирует Value в JSON-представление
 std::string valueToJson(const Value& v);
 
-} // namespace chapadb
+}

@@ -36,7 +36,6 @@ HttpRequest HttpServer::parseRequest(const std::string& raw) {
     std::istringstream ss(raw);
     std::string line;
 
-    // Первая строка: METHOD PATH HTTP/1.x
     if (std::getline(ss, line)) {
         if (!line.empty() && line.back() == '\r') line.pop_back();
         std::istringstream ls(line);
@@ -44,7 +43,6 @@ HttpRequest HttpServer::parseRequest(const std::string& raw) {
         ls >> req.method >> req.path >> proto;
     }
 
-    // Заголовки
     int contentLength = 0;
     while (std::getline(ss, line)) {
         if (!line.empty() && line.back() == '\r') line.pop_back();
@@ -59,7 +57,6 @@ HttpRequest HttpServer::parseRequest(const std::string& raw) {
         }
     }
 
-    // Тело
     if (contentLength > 0) {
         req.body.resize(contentLength);
         ss.read(&req.body[0], contentLength);
@@ -81,7 +78,6 @@ HttpResponse HttpServer::dispatch(const HttpRequest& req) {
         it = m_routes.find(req.method + " " + pathOnly);
     }
     if (it == m_routes.end()) {
-        // Wildcard для OPTIONS
         it = m_routes.find("OPTIONS *");
     }
 
@@ -103,26 +99,22 @@ HttpResponse HttpServer::dispatch(const HttpRequest& req) {
 }
 
 void HttpServer::handleClient(int clientFd) {
-    // Читаем запрос (упрощённо — читаем до двойного \r\n + Content-Length)
     std::string raw;
     char buf[4096];
     ssize_t n;
 
-    // Читаем заголовки
     while ((n = recv(clientFd, buf, sizeof(buf) - 1, 0)) > 0) {
         buf[n] = '\0';
         raw += buf;
-        // Проверяем конец заголовков
+
         auto headerEnd = raw.find("\r\n\r\n");
         if (headerEnd != std::string::npos) {
-            // Ищем Content-Length
             int contentLen = 0;
             auto clPos = raw.find("Content-Length: ");
             if (clPos != std::string::npos) {
                 auto clEnd = raw.find("\r\n", clPos);
                 contentLen = std::stoi(raw.substr(clPos + 16, clEnd - clPos - 16));
             }
-            // Проверяем получили ли всё тело
             int bodyReceived = static_cast<int>(raw.size()) - static_cast<int>(headerEnd) - 4;
             if (bodyReceived >= contentLen) break;
         }
@@ -197,4 +189,4 @@ void HttpServer::stop() {
     }
 }
 
-} // namespace chapadb
+} 

@@ -6,7 +6,7 @@
 
 namespace chapadb {
 
-/// Таблица ключевых слов (в верхнем регистре → тип токена)
+/// Таблица ключевых слов
 static const std::unordered_map<std::string, TokenType> KEYWORDS = {
     {"SELECT",   TokenType::KW_SELECT},
     {"FROM",     TokenType::KW_FROM},
@@ -111,7 +111,7 @@ Token Lexer::readNumber() {
 
     while (!isAtEnd() && (std::isdigit(static_cast<unsigned char>(peek())) || peek() == '.')) {
         if (peek() == '.') {
-            if (isFloat) break; // второй — уже не наш
+            if (isFloat) break; 
             isFloat = true;
         }
         buf += advance();
@@ -123,7 +123,7 @@ Token Lexer::readNumber() {
 Token Lexer::readString() {
     int startLine = m_line;
     int startCol  = m_col;
-    advance(); // пропускаем открывающую '
+    advance(); 
     std::string buf;
 
     while (!isAtEnd() && peek() != '\'') {
@@ -145,7 +145,7 @@ Token Lexer::readString() {
     if (isAtEnd()) {
         throw std::runtime_error("Незакрытый строковый литерал на строке " + std::to_string(startLine));
     }
-    advance(); // закрывающая '
+    advance();
     return Token{TokenType::LIT_STRING, buf, startLine, startCol};
 }
 
@@ -180,7 +180,6 @@ std::vector<Token> Lexer::tokenize() {
         int curCol  = m_col;
         char c = peek();
 
-        // Однострочный комментарий
         if (c == '-' && m_pos + 1 < m_source.size() && m_source[m_pos + 1] == '-') {
             skipLineComment();
             continue;
@@ -199,7 +198,6 @@ std::vector<Token> Lexer::tokenize() {
             continue;
         }
 
-        // Однои двухсимвольные операторы и знаки препинания
         advance();
         switch (c) {
             case '=': tokens.push_back({TokenType::OP_EQ,     "=",  curLine, curCol}); break;
@@ -243,4 +241,4 @@ std::vector<Token> Lexer::tokenize() {
     return tokens;
 }
 
-} // namespace chapadb
+} 

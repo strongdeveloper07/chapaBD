@@ -38,7 +38,6 @@ std::string valueToJson(const Value& v) {
         if constexpr (std::is_same_v<T, bool>)  return val ? "true" : "false";
         if constexpr (std::is_same_v<T, int32_t>) return std::to_string(val);
         if constexpr (std::is_same_v<T, double>) {
-            // Убираем лишние нули
             std::ostringstream oss;
             oss << val;
             return oss.str();
@@ -113,8 +112,6 @@ void registerWebApi(HttpServer& server) {
 
     // POST /api/query — выполнить SQL
     server.on("POST", "/api/query", [](const HttpRequest& req) {
-        // Тело: {"sql":"...","db":"..."}
-        // Простой парсинг JSON без внешних библиотек
         std::string sql;
         std::string db;
 
@@ -662,4 +659,4 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 }
 
-} // namespace chapadb
+}

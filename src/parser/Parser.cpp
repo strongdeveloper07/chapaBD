@@ -2,6 +2,7 @@
 #include <stdexcept>
 #include <algorithm>
 #include <cctype>
+#include <unordered_set>
 
 namespace chapadb {
 
@@ -38,7 +39,7 @@ const Token& Parser::expect(TokenType t, const std::string& msg) {
 
 std::unique_ptr<ASTNode> Parser::parse() {
     auto node = parseStatement();
-    match(TokenType::SYM_SEMICOL); // опциональная точка с запятой
+    match(TokenType::SYM_SEMICOL); 
     return node;
 }
 
@@ -69,13 +70,13 @@ std::unique_ptr<ASTNode> Parser::parseCreate() {
 
     if (match(TokenType::KW_DATABASE)) {
         auto stmt = std::make_unique<CreateDatabaseStatement>();
-        stmt->dbName = expect(TokenType::IDENTIFIER, "Ожидалось имя базы данных").value;
+        stmt->dbName = parseIdentifier("Ожидалось имя базы данных");
         return stmt;
     }
 
     if (match(TokenType::KW_TABLE)) {
         auto stmt = std::make_unique<CreateTableStatement>();
-        stmt->tableName = expect(TokenType::IDENTIFIER, "Ожидалось имя таблицы").value;
+        stmt->tableName = parseIdentifier("Ожидалось имя таблицы");
         expect(TokenType::SYM_LPAREN, "Ожидался '(' после имени таблицы");
 
         do {
@@ -93,7 +94,7 @@ std::unique_ptr<ASTNode> Parser::parseCreate() {
 
 ColumnSchema Parser::parseColumnDef() {
     ColumnSchema col;
-    col.name  = expect(TokenType::IDENTIFIER, "Ожидалось имя столбца").value;
+    col.name  = parseIdentifier("Ожидалось имя столбца");
     col.param = 0;
 
     switch (peek().type) {
@@ -124,13 +125,13 @@ std::unique_ptr<ASTNode> Parser::parseDrop() {
 
     if (match(TokenType::KW_DATABASE)) {
         auto stmt = std::make_unique<DropDatabaseStatement>();
-        stmt->dbName = expect(TokenType::IDENTIFIER, "Ожидалось имя базы данных").value;
+        stmt->dbName = parseIdentifier("Ожидалось имя базы данных");
         return stmt;
     }
 
     if (match(TokenType::KW_TABLE)) {
         auto stmt = std::make_unique<DropTableStatement>();
-        stmt->tableName = expect(TokenType::IDENTIFIER, "Ожидалось имя таблицы").value;
+        stmt->tableName = parseIdentifier("Ожидалось имя таблицы");
         return stmt;
     }
 
@@ -166,11 +167,11 @@ SelectItem Parser::parseSelectItem() {
         if (match(TokenType::SYM_STAR)) {
             item.aggArg = "*";
         } else {
-            item.aggArg = expect(TokenType::IDENTIFIER, "Ожидался аргумент агрегатной функции").value;
+            item.aggArg = parseIdentifier("Ожидался аргумент агрегатной функции");
         }
         expect(TokenType::SYM_RPAREN, "Ожидался ')' после аргумента агрегата");
     } else {
-        item.colName = expect(TokenType::IDENTIFIER, "Ожидалось имя столбца").value;
+        item.colName = parseIdentifier("Ожидалось имя столбца");
         item.aggFunc = AggFunc::NONE;
     }
     return item;
@@ -192,7 +193,6 @@ std::unique_ptr<ASTNode> Parser::parseSelect() {
             if (isAggToken(peek().type)) hasAgg = true;
             stmt->items.push_back(parseSelectItem());
         }
-        // Для совместимости заполняем columns из items без агрегатов
         if (!hasAgg) {
             for (const auto& item : stmt->items) {
                 stmt->columns.push_back(item.colName);
@@ -201,21 +201,18 @@ std::unique_ptr<ASTNode> Parser::parseSelect() {
     }
 
     expect(TokenType::KW_FROM, "Ожидался FROM");
-    stmt->tableName = expect(TokenType::IDENTIFIER, "Ожидалось имя таблицы").value;
+    stmt->tableName = parseIdentifier("Ожидалось имя таблицы");
 
     // INNER JOIN
     while (check(TokenType::KW_INNER) || check(TokenType::KW_JOIN)) {
         match(TokenType::KW_INNER);
         expect(TokenType::KW_JOIN, "Ожидался JOIN");
         JoinClause jc;
-        jc.tableName = expect(TokenType::IDENTIFIER, "Ожидалось имя таблицы JOIN").value;
+        jc.tableName = parseIdentifier("Ожидалось имя таблицы JOIN");
         expect(TokenType::KW_ON, "Ожидался ON после имени таблицы JOIN");
-        // Поддерживаем формат: col = col (без префикса таблицы)
-        std::string lhs = expect(TokenType::IDENTIFIER, "Ожидался столбец ON").value;
-        // Проверяем есть ли точка (лексер её проигнорирует как неожиданный символ, поэтому
-        // поддерживаем только формат без префикса таблицы)
+        std::string lhs = parseIdentifier("Ожидался столбец ON");
         expect(TokenType::OP_EQ, "Ожидался '=' в условии ON");
-        std::string rhs = expect(TokenType::IDENTIFIER, "Ожидался столбец ON").value;
+        std::string rhs = parseIdentifier("Ожидался столбец ON");
         jc.leftCol  = lhs;
         jc.rightCol = rhs;
         stmt->joins.push_back(std::move(jc));
@@ -229,9 +226,9 @@ std::unique_ptr<ASTNode> Parser::parseSelect() {
     if (check(TokenType::KW_GROUP)) {
         advance();
         expect(TokenType::KW_BY, "Ожидался BY после GROUP");
-        stmt->groupBy.push_back(expect(TokenType::IDENTIFIER, "Ожидалось имя столбца GROUP BY").value);
+        stmt->groupBy.push_back(parseIdentifier("Ожидалось имя столбца GROUP BY"));
         while (match(TokenType::SYM_COMMA)) {
-            stmt->groupBy.push_back(expect(TokenType::IDENTIFIER, "Ожидалось имя столбца").value);
+            stmt->groupBy.push_back(parseIdentifier("Ожидалось имя столбца"));
         }
     }
 
@@ -246,7 +243,7 @@ std::unique_ptr<ASTNode> Parser::parseSelect() {
         expect(TokenType::KW_BY, "Ожидался BY после ORDER");
         do {
             OrderByClause ob;
-            ob.column = expect(TokenType::IDENTIFIER, "Ожидалось имя столбца ORDER BY").value;
+            ob.column = parseIdentifier("Ожидалось имя столбца ORDER BY");
             ob.ascending = true;
             if (match(TokenType::KW_DESC)) ob.ascending = false;
             else match(TokenType::KW_ASC);
@@ -274,13 +271,13 @@ std::unique_ptr<ASTNode> Parser::parseInsert() {
     expect(TokenType::KW_INTO,   "Ожидался INTO");
 
     auto stmt = std::make_unique<InsertStatement>();
-    stmt->tableName = expect(TokenType::IDENTIFIER, "Ожидалось имя таблицы").value;
+    stmt->tableName = parseIdentifier("Ожидалось имя таблицы");
 
-    // Список столбцов (необязательный)
+    // Список столбцов
     if (match(TokenType::SYM_LPAREN)) {
-        stmt->columns.push_back(expect(TokenType::IDENTIFIER, "Ожидалось имя столбца").value);
+        stmt->columns.push_back(parseIdentifier("Ожидалось имя столбца"));
         while (match(TokenType::SYM_COMMA)) {
-            stmt->columns.push_back(expect(TokenType::IDENTIFIER, "Ожидалось имя столбца").value);
+            stmt->columns.push_back(parseIdentifier("Ожидалось имя столбца"));
         }
         expect(TokenType::SYM_RPAREN, "Ожидался ')'");
     }
@@ -308,13 +305,13 @@ std::unique_ptr<ASTNode> Parser::parseUpdate() {
     expect(TokenType::KW_UPDATE, "Ожидался UPDATE");
 
     auto stmt = std::make_unique<UpdateStatement>();
-    stmt->tableName = expect(TokenType::IDENTIFIER, "Ожидалось имя таблицы").value;
+    stmt->tableName = parseIdentifier("Ожидалось имя таблицы");
 
     expect(TokenType::KW_SET, "Ожидался SET");
 
     // column = value, ...
     do {
-        std::string col = expect(TokenType::IDENTIFIER, "Ожидалось имя столбца").value;
+        std::string col = parseIdentifier("Ожидалось имя столбца");
         expect(TokenType::OP_EQ, "Ожидался '='");
         Value val = parseValue();
         stmt->assignments.emplace_back(std::move(col), std::move(val));
@@ -333,7 +330,7 @@ std::unique_ptr<ASTNode> Parser::parseDelete() {
     expect(TokenType::KW_FROM,   "Ожидался FROM");
 
     auto stmt = std::make_unique<DeleteStatement>();
-    stmt->tableName = expect(TokenType::IDENTIFIER, "Ожидалось имя таблицы").value;
+    stmt->tableName = parseIdentifier("Ожидалось имя таблицы");
 
     if (match(TokenType::KW_WHERE)) {
         stmt->where = parseWhere();
@@ -346,7 +343,7 @@ std::unique_ptr<ASTNode> Parser::parseDelete() {
 std::unique_ptr<ASTNode> Parser::parseUse() {
     expect(TokenType::KW_USE, "Ожидался USE");
     auto stmt = std::make_unique<UseDatabaseStatement>();
-    stmt->dbName = expect(TokenType::IDENTIFIER, "Ожидалось имя базы данных").value;
+    stmt->dbName = parseIdentifier("Ожидалось имя базы данных");
     return stmt;
 }
 
@@ -390,15 +387,13 @@ std::unique_ptr<ConditionNode> Parser::parseNot() {
 }
 
 std::unique_ptr<ConditionNode> Parser::parsePrimary() {
-    // Скобки: ( condition )
     if (match(TokenType::SYM_LPAREN)) {
         auto cond = parseOr();
         expect(TokenType::SYM_RPAREN, "Ожидался ')' после условия");
         return cond;
     }
 
-    // column op value
-    std::string col = expect(TokenType::IDENTIFIER, "Ожидалось имя столбца в условии").value;
+    std::string col = parseIdentifier("Ожидалось имя столбца в условии");
     CompareOp   op  = parseCompareOp();
     Value       val = parseValue();
 
@@ -426,11 +421,10 @@ CompareOp Parser::parseCompareOp() {
 // ─────────────────────────── Управление пользователями ───────────────
 
 std::unique_ptr<ASTNode> Parser::parseCreateUser() {
-    // CREATE USER был уже съеден в parseCreate
     auto stmt = std::make_unique<CreateUserStatement>();
-    stmt->username = expect(TokenType::IDENTIFIER, "Ожидалось имя пользователя").value;
+    stmt->username = parseIdentifier("Ожидалось имя пользователя");
     if (match(TokenType::KW_WITH)) {
-        match(TokenType::KW_PASSWORD); // опционально слово PASSWORD
+        match(TokenType::KW_PASSWORD); 
         stmt->password = expect(TokenType::LIT_STRING, "Ожидался пароль в кавычках").value;
     }
     if (match(TokenType::KW_ROLE)) {
@@ -448,7 +442,7 @@ std::unique_ptr<ASTNode> Parser::parseCreateUser() {
 
 std::unique_ptr<ASTNode> Parser::parseDropUser() {
     auto stmt = std::make_unique<DropUserStatement>();
-    stmt->username = expect(TokenType::IDENTIFIER, "Ожидалось имя пользователя").value;
+    stmt->username = parseIdentifier("Ожидалось имя пользователя");
     return stmt;
 }
 
@@ -488,9 +482,9 @@ std::unique_ptr<ASTNode> Parser::parseGrant() {
     expect(TokenType::KW_ON, "Ожидался ON после привилегий");
     stmt->tableName = check(TokenType::SYM_STAR)
         ? (advance(), std::string("*"))
-        : expect(TokenType::IDENTIFIER, "Ожидалось имя таблицы").value;
+        : parseIdentifier("Ожидалось имя таблицы");
     expect(TokenType::KW_TO, "Ожидался TO");
-    stmt->username = expect(TokenType::IDENTIFIER, "Ожидалось имя пользователя").value;
+    stmt->username = parseIdentifier("Ожидалось имя пользователя");
     return stmt;
 }
 
@@ -501,10 +495,28 @@ std::unique_ptr<ASTNode> Parser::parseRevoke() {
     expect(TokenType::KW_ON, "Ожидался ON после привилегий");
     stmt->tableName = check(TokenType::SYM_STAR)
         ? (advance(), std::string("*"))
-        : expect(TokenType::IDENTIFIER, "Ожидалось имя таблицы").value;
+        : parseIdentifier("Ожидалось имя таблицы");
     expect(TokenType::KW_FROM, "Ожидался FROM");
-    stmt->username = expect(TokenType::IDENTIFIER, "Ожидалось имя пользователя").value;
+    stmt->username = parseIdentifier("Ожидалось имя пользователя");
     return stmt;
+}
+
+std::string Parser::parseIdentifier(const std::string& errMsg) {
+    TokenType t = peek().type;
+    if (t == TokenType::IDENTIFIER   ||
+        t == TokenType::KW_USERS     || t == TokenType::KW_USER      ||
+        t == TokenType::KW_ALL       ||
+        t == TokenType::KW_MIN       || t == TokenType::KW_MAX       ||
+        t == TokenType::KW_SUM       || t == TokenType::KW_AVG       ||
+        t == TokenType::KW_COUNT     ||
+        t == TokenType::KW_ASC       || t == TokenType::KW_DESC      ||
+        t == TokenType::KW_ROLE      || t == TokenType::KW_PASSWORD   ||
+        t == TokenType::KW_AUTH      || t == TokenType::KW_ADMIN     ||
+        t == TokenType::KW_READONLY  || t == TokenType::KW_READWRITE) {
+        return advance().value;
+    }
+    throw std::runtime_error(errMsg + " (получен: '" + peek().value +
+                             "' на строке " + std::to_string(peek().line) + ")");
 }
 
 Value Parser::parseValue() {
@@ -529,4 +541,4 @@ Value Parser::parseValue() {
     }
 }
 
-} // namespace chapadb
+} 

@@ -17,7 +17,6 @@ class Executor : public ASTVisitor {
 public:
     Executor();
 
-    /// Выполняет узел AST и возвращает результат
     QueryResult execute(ASTNode& node);
 
     // ── ASTVisitor ─────────────────────────────────────────────────────
@@ -51,4 +50,4 @@ private:
                       const std::unique_ptr<ConditionNode>& where);
 };
 
-} // namespace chapadb
+}

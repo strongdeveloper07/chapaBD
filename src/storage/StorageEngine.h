@@ -71,4 +71,4 @@ private:
     static std::string readStr(std::istream& is);
 };
 
-} // namespace chapadb
+} 

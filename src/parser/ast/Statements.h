@@ -18,7 +18,7 @@ struct ConditionNode {
     virtual bool evaluate(const Row& row, const std::vector<ColumnSchema>& schema) const = 0;
 };
 
-/// Простое сравнение: column op value
+
 struct ComparisonCondition : ConditionNode {
     std::string name;
     CompareOp   op;
@@ -87,9 +87,9 @@ enum class AggFunc { NONE, COUNT, SUM, AVG, MIN, MAX };
 
 /// Один элемент проекции SELECT: столбец или агрегатная функция
 struct SelectItem {
-    std::string colName;               // обычный столбец (aggFunc == NONE)
+    std::string colName;              
     AggFunc     aggFunc = AggFunc::NONE;
-    std::string aggArg;                // аргумент агрегата (имя столбца или *)
+    std::string aggArg;              
 };
 
 /// Одна клауза ORDER BY
@@ -107,12 +107,11 @@ struct JoinClause {
 
 struct SelectStatement : ASTNode {
     std::string              tableName;
-    std::vector<std::string> columns;   // пустой вектор = SELECT * (совместимость)
+    std::vector<std::string> columns;   // пустой вектор = SELECT * 
     bool                     selectAll; // true если SELECT *
     std::unique_ptr<ConditionNode> where;
 
-    // Расширенная проекция (Post-MVP)
-    std::vector<SelectItem>      items;    // заполняется если есть агрегаты
+    std::vector<SelectItem>      items;    
     std::vector<JoinClause>      joins;
     std::vector<std::string>     groupBy;
     std::unique_ptr<ConditionNode> having;
@@ -126,7 +125,7 @@ struct SelectStatement : ASTNode {
 struct InsertStatement : ASTNode {
     std::string                   tableName;
     std::vector<std::string>      columns;
-    std::vector<std::vector<Value>> values; // несколько строк VALUES
+    std::vector<std::vector<Value>> values; 
 
     void accept(ASTVisitor& v) override { v.visit(*this); }
 };
@@ -172,7 +171,7 @@ struct AuthStatement : ASTNode {
 
 struct GrantStatement : ASTNode {
     std::string username;
-    std::string tableName; // "*" = все таблицы
+    std::string tableName; 
     bool all = false;
     bool sel = false, ins = false, upd = false, del = false;
     void accept(ASTVisitor& v) override { v.visit(*this); }
@@ -188,7 +187,6 @@ struct RevokeStatement : ASTNode {
 
 // ─────────────────────────── Вспомогательное ─────────────────────────
 
-/// Сравнивает два Value через оператор (для ComparisonCondition::evaluate)
 bool compareValues(const Value& a, CompareOp op, const Value& b);
 
-} // namespace chapadb
+} 

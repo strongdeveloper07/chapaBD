@@ -60,10 +60,13 @@ private:
     // Парсинг элементов проекции SELECT
     SelectItem parseSelectItem();
 
-    // Парсинг одного значения (литерал)
+    // Парсинг литерала
     Value parseValue();
 
     CompareOp parseCompareOp();
+
+    // Парсинг идентификатора — принимает IDENTIFIER и контекстные ключевые слова
+    std::string parseIdentifier(const std::string& errMsg);
 };
 
-} // namespace chapadb
+} 

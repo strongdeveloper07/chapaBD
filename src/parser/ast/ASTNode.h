@@ -3,7 +3,6 @@
 
 namespace chapadb {
 
-// Предварительные объявления всех Statement-классов
 struct CreateDatabaseStatement;
 struct DropDatabaseStatement;
 struct UseDatabaseStatement;
@@ -51,4 +50,4 @@ struct ASTNode {
     virtual void accept(ASTVisitor& visitor) = 0;
 };
 
-} // namespace chapadb
+} 

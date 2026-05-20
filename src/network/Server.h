@@ -16,10 +16,10 @@ public:
     Server(std::string host, int port);
     ~Server();
 
-    /// Запускает сервер (блокирующий вызов до stop())
+    /// Запуск сервера
     void run();
 
-    /// Сигнализирует серверу остановиться
+    /// Остановка сервера
     void stop();
 
 private:
@@ -31,7 +31,6 @@ private:
     /// Обрабатывает одно клиентское соединение
     void handleClient(int clientFd);
 
-    /// Читает SQL-запрос из сокета, возвращает JSON-ответ
     std::string processQuery(const std::string& sql);
 
     // Протокольные хелперы
@@ -49,4 +48,4 @@ private:
     static std::string valueToJson(const Value& v);
 };
 
-} // namespace chapadb
+} 

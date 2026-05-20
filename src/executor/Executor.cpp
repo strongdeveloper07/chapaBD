@@ -122,7 +122,6 @@ static double toDouble(const Value& v) {
 
 /// Сравнивает два Value для сортировки
 static int compareForSort(const Value& a, const Value& b) {
-    // NULL меньше всего
     if (std::holds_alternative<std::monostate>(a)) return std::holds_alternative<std::monostate>(b) ? 0 : -1;
     if (std::holds_alternative<std::monostate>(b)) return 1;
     if (std::holds_alternative<std::string>(a) && std::holds_alternative<std::string>(b)) {
@@ -236,7 +235,6 @@ void Executor::visit(SelectStatement& stmt) {
         }
     }
 
-    // Применяем WHERE
     std::vector<Row> filtered;
     TableMeta joinedMeta;
     joinedMeta.columns = joinedSchema;
@@ -250,9 +248,7 @@ void Executor::visit(SelectStatement& stmt) {
         if (item.aggFunc != AggFunc::NONE) { hasAgg = true; break; }
     }
 
-    // Путь без агрегатов — быстрый путь (совместимость с MVP)
     if (!hasAgg && stmt.groupBy.empty()) {
-        // Простая проекция
         std::vector<int>         colIndexes;
         std::vector<std::string> colNames;
 
@@ -356,7 +352,7 @@ void Executor::visit(SelectStatement& stmt) {
     // ORDER BY
     if (!stmt.orderBy.empty()) {
         // Строим индексы столбцов сортировки
-        std::vector<std::pair<int, bool>> sortKeys; // {индекс, ascending}
+        std::vector<std::pair<int, bool>> sortKeys; 
         for (const auto& ob : stmt.orderBy) {
             // Ищем в заголовках результата
             int idx = -1;
@@ -382,7 +378,6 @@ void Executor::visit(SelectStatement& stmt) {
             });
     }
 
-    // LIMIT / OFFSET
     if (stmt.limitCount >= 0) {
         int64_t offset = stmt.limitOffset;
         if (offset > 0) {
@@ -405,7 +400,7 @@ void Executor::visit(InsertStatement& stmt) {
     TableMeta meta = requireTable(dbName, stmt.tableName);
 
     // Сопоставляем столбцы из INSERT со схемой
-    std::vector<int> colMapping; // colMapping[i] = индекс в meta.columns
+    std::vector<int> colMapping; 
     if (!stmt.columns.empty()) {
         for (const auto& name : stmt.columns) {
             bool found = false;
@@ -422,7 +417,6 @@ void Executor::visit(InsertStatement& stmt) {
             }
         }
     } else {
-        // Нет списка столбцов — маппинг 1:1
         for (int i = 0; i < static_cast<int>(meta.columns.size()); ++i) {
             colMapping.push_back(i);
         }
@@ -465,7 +459,6 @@ void Executor::visit(UpdateStatement& stmt) {
         }
     }
 
-    // Строим индекс для присвоений
     std::vector<std::pair<int, Value>> updates;
     for (const auto& [colName, val] : stmt.assignments) {
         for (int i = 0; i < static_cast<int>(meta.columns.size()); ++i) {
@@ -519,7 +512,7 @@ void Executor::visit(DropUserStatement& stmt) {
     m_result.message = "Пользователь '" + stmt.username + "' удалён";
 }
 
-void Executor::visit(ShowUsersStatement& /*stmt*/) {
+void Executor::visit(ShowUsersStatement& stmt) {
     auto users = AuthManager::instance().listUsers();
     m_result.columns = {"username", "role"};
     for (const auto& u : users) {
@@ -559,4 +552,4 @@ void Executor::visit(RevokeStatement& stmt) {
     m_result.message = "Привилегии отозваны у пользователя '" + stmt.username + "'";
 }
 
-} // namespace chapadb
+} 

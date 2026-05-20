@@ -9,7 +9,6 @@ namespace fs = std::filesystem;
 
 namespace chapadb {
 
-// Магические числа файлов
 static constexpr uint32_t MAGIC_CATALOG = 0xCBD1;
 static constexpr uint32_t MAGIC_SCHEMA  = 0xCBD2;
 static constexpr uint32_t MAGIC_TABLE   = 0xCBD3;
@@ -36,7 +35,6 @@ std::string StorageEngine::tablePath(const std::string& dbName, const std::strin
     return dbDir(dbName) + "/" + tableName + ".dat";
 }
 
-// ─────────────────────────── Бинарные I/O ────────────────────────────
 
 void StorageEngine::writeU8(std::ostream& os, uint8_t v) {
     os.write(reinterpret_cast<const char*>(&v), 1);

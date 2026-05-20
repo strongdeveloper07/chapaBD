@@ -19,7 +19,7 @@ struct TablePrivilege {
 
 struct UserInfo {
     std::string name;
-    std::string passwordHash; // хэш пароля (djb2)
+    std::string passwordHash; // хэш пароля 
     UserRole    role = UserRole::READWRITE;
     std::vector<TablePrivilege> privileges;
 };
@@ -87,4 +87,4 @@ private:
     mutable std::mutex       m_mutex;
 };
 
-} // namespace chapadb
+} 

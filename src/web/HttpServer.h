@@ -45,7 +45,7 @@ public:
     void stop();
 
 private:
-    std::map<std::string, HttpHandler> m_routes; // "METHOD /path" → handler
+    std::map<std::string, HttpHandler> m_routes; 
     std::atomic<bool> m_running{false};
     int m_serverFd{-1};
 
@@ -56,4 +56,4 @@ private:
     static HttpRequest parseRequest(const std::string& raw);
 };
 
-} // namespace chapadb
+}

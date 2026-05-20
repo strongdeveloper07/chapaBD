@@ -6,7 +6,6 @@
 
 namespace chapadb {
 
-// Простой детерминированный хэш (djb2 + соль)
 std::string AuthManager::hashPassword(const std::string& password) {
     const std::string salt = "chapaBD_2024_salt";
     std::string salted = salt + password + salt;
@@ -14,7 +13,6 @@ std::string AuthManager::hashPassword(const std::string& password) {
     for (unsigned char c : salted) {
         hash = ((hash << 5) + hash) ^ c;
     }
-    // Конвертируем в hex-строку
     std::ostringstream oss;
     oss << std::hex << hash;
     return oss.str();
@@ -97,7 +95,7 @@ void AuthManager::save() const {
 void AuthManager::load() {
     std::string path = m_dataDir + "/users.dat";
     std::ifstream ifs(path, std::ios::binary);
-    if (!ifs) return; // файл не существует — нормально при первом запуске
+    if (!ifs) return;
 
     uint32_t magic = readU32(ifs);
     if (magic != 0xCBD4) return;
@@ -238,7 +236,6 @@ bool AuthManager::checkPrivilege(const std::string& username, const std::string&
                                   bool TablePrivilege::* field) const {
     for (const auto& u : m_users) {
         if (u.name != username) continue;
-        // ADMIN — все права
         if (u.role == UserRole::ADMIN) return true;
         for (const auto& p : u.privileges) {
             if ((p.db == db || p.db == "*") &&
@@ -246,7 +243,6 @@ bool AuthManager::checkPrivilege(const std::string& username, const std::string&
                 return p.*field;
             }
         }
-        // READONLY — только SELECT без явных привилегий
         if (u.role == UserRole::READONLY && field == &TablePrivilege::canSelect) return true;
         return false;
     }
@@ -270,4 +266,4 @@ bool AuthManager::canDelete(const std::string& u, const std::string& db, const s
     return checkPrivilege(u, db, t, &TablePrivilege::canDelete);
 }
 
-} // namespace chapadb
+} 

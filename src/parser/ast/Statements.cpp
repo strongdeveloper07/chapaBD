@@ -18,18 +18,16 @@ static bool numericCompare(double a, CompareOp op, double b) {
 }
 
 bool compareValues(const Value& a, CompareOp op, const Value& b) {
-    // NULL не равен ничему
     if (std::holds_alternative<std::monostate>(a) ||
         std::holds_alternative<std::monostate>(b)) {
         return false;
     }
 
-    // Оба INT
     if (std::holds_alternative<int32_t>(a) && std::holds_alternative<int32_t>(b)) {
         return numericCompare(std::get<int32_t>(a), op, std::get<int32_t>(b));
     }
 
-    // Оба FLOAT или INT+FLOAT
+
     if ((std::holds_alternative<double>(a) || std::holds_alternative<int32_t>(a)) &&
         (std::holds_alternative<double>(b) || std::holds_alternative<int32_t>(b))) {
         double da = std::holds_alternative<double>(a)
@@ -41,7 +39,7 @@ bool compareValues(const Value& a, CompareOp op, const Value& b) {
         return numericCompare(da, op, db);
     }
 
-    // BOOL
+
     if (std::holds_alternative<bool>(a) && std::holds_alternative<bool>(b)) {
         bool ba = std::get<bool>(a), bb = std::get<bool>(b);
         switch (op) {
@@ -51,7 +49,7 @@ bool compareValues(const Value& a, CompareOp op, const Value& b) {
         }
     }
 
-    // STRING
+
     if (std::holds_alternative<std::string>(a) && std::holds_alternative<std::string>(b)) {
         const auto& sa = std::get<std::string>(a);
         const auto& sb = std::get<std::string>(b);
@@ -69,7 +67,6 @@ bool compareValues(const Value& a, CompareOp op, const Value& b) {
 }
 
 bool ComparisonCondition::evaluate(const Row& row, const std::vector<ColumnSchema>& schema) const {
-    // Находим индекс столбца по имени
     int idx = -1;
     for (int i = 0; i < static_cast<int>(schema.size()); ++i) {
         if (schema[i].name == name) { idx = i; break; }
@@ -81,4 +78,4 @@ bool ComparisonCondition::evaluate(const Row& row, const std::vector<ColumnSchem
     return compareValues(row.values[idx], op, value);
 }
 
-} // namespace chapadb
+} 

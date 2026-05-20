@@ -13,7 +13,7 @@ namespace {
     chapadb::HttpServer* g_webServer = nullptr;
 }
 
-static void signalHandler(int /*sig*/) {
+static void signalHandler(int) {
     std::cout << "\nОстановка сервера..." << std::endl;
     if (g_webServer) g_webServer->stop();
     if (g_server)    g_server->stop();
@@ -23,7 +23,7 @@ int main(int argc, char* argv[]) {
     std::string host     = "0.0.0.0";
     int         port     = 5432;
     std::string dataDir  = "data";
-    int         webPort  = -1; // -1 = auto (port + 1000)
+    int         webPort  = -1;
 
     for (int i = 1; i < argc; ++i) {
         std::string arg = argv[i];
@@ -41,7 +41,6 @@ int main(int argc, char* argv[]) {
     std::signal(SIGINT,  signalHandler);
     std::signal(SIGTERM, signalHandler);
 
-    // Запускаем веб-интерфейс в фоне (если не отключён)
     chapadb::HttpServer webServer;
     if (webPort > 0) {
         chapadb::registerWebApi(webServer);

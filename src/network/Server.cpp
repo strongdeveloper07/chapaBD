@@ -136,7 +136,7 @@ void Server::handleClient(int clientFd) {
             try {
                 sqlLen = readU32BE(clientFd);
             } catch (...) {
-                break; // клиент отключился
+                break; 
             }
 
             if (sqlLen == 0 || sqlLen > 1024 * 1024) break;
@@ -144,7 +144,6 @@ void Server::handleClient(int clientFd) {
             std::string sql = recvAll(clientFd, sqlLen);
             std::string jsonResp = processQuery(sql);
 
-            // Отправляем ответ: [статус 1 байт][длина 4 байта][JSON]
             bool hasError = (jsonResp.size() > 9 && jsonResp.substr(2, 5) == "error");
             uint8_t status = hasError ? 1 : 0;
 
@@ -263,4 +262,4 @@ std::string Server::buildErrorJson(const std::string& err) {
     return "{\"error\":\"" + escapeJson(err) + "\"}";
 }
 
-} // namespace chapadb
+} 
