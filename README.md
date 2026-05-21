@@ -24,10 +24,8 @@
 ---
 
 <div align="center">
-  <img src="docs/demo.gif" alt="chapaBD demo" width="780">
+  <img src="docs/demo.svg" alt="chapaBD demo" width="780">
 </div>
-
-> 💡 **Как записать GIF:** установи [`terminalizer`](https://github.com/faressoft/terminalizer) (`npm i -g terminalizer`), выполни `terminalizer record docs/demo` пока тестируешь СУБД, затем `terminalizer render docs/demo -o docs/demo.gif` и замени этот блок готовым файлом.
 
 ---
 
